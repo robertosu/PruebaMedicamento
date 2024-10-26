@@ -20,7 +20,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private DatabaseHelper dbHelper;
-    private MapView mapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,24 +67,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onResume() {
         super.onResume();
-        mapView.onResume();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        mapView.onLowMemory();
     }
 }
