@@ -8,17 +8,84 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+    private GoogleMap mMap;
+    private DatabaseHelper dbHelper;
+    private MapView mapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Inicializar el helper de la base de datos
+        dbHelper = new DatabaseHelper(this);
+
+        // Obtener el MapView e inicializarlo
+        MapView mapView = findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Cargar los puntos desde la base de datos
+        loadPointsFromDatabase();
+    }
+
+    private void loadPointsFromDatabase() {
+        List<PointModel> points = dbHelper.getAllPoints();
+
+        for (PointModel point : points) {
+            LatLng position = new LatLng(point.getLatitude(), point.getLongitude());
+
+            // Agregar marcador al mapa
+            mMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(point.getTitle()));
+        }
+
+        // Si hay puntos, centrar el mapa en el primer punto
+        if (!points.isEmpty()) {
+            PointModel firstPoint = points.get(0);
+            LatLng position = new LatLng(firstPoint.getLatitude(), firstPoint.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 12f));
+        }
+    }
+
+    // Métodos del ciclo de vida necesarios para MapView
+    @Override
+    public void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
     }
 }
