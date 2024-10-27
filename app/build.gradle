@@ -44,4 +44,5 @@ dependencies {
     androidTestImplementation libs.espresso.core
     // Dependecia de MAPS
     implementation libs.play.services.maps
+    implementation libs.material.v190
 }

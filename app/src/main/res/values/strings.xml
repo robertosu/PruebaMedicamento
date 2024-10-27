@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PruebaMedicamento</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="mapview_description">Mapa de farmacias</string>
 </resources>
