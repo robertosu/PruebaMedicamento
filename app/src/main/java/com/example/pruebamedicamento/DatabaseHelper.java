@@ -1,7 +1,6 @@
 package com.example.pruebamedicamento;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -166,50 +165,53 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-//        createSedes(sqLiteDatabase);
-//        createPrecioMedicamento(sqLiteDatabase);
-//        createFranquicias(sqLiteDatabase);
-//        createTiposMedicamento(sqLiteDatabase);
-//        createMedicamentos(sqLiteDatabase);
-//
-//        insertarDatosSedes(sqLiteDatabase);
-//        insertarDatosPrecioMedicamento(sqLiteDatabase);
-//        insertarDatosMedicamentos(sqLiteDatabase);
-//        insertarDatosFranquicias(sqLiteDatabase);
-//        insertarDatosTiposMedicamento(sqLiteDatabase);
+        createSedes(sqLiteDatabase);
+        createPrecioMedicamento(sqLiteDatabase);
+        createFranquicias(sqLiteDatabase);
+        createTiposMedicamento(sqLiteDatabase);
+        createMedicamentos(sqLiteDatabase);
+        createCiudades(sqLiteDatabase);
+
+        insertarDatosSedes(sqLiteDatabase);
+        insertarDatosPrecioMedicamento(sqLiteDatabase);
+        insertarDatosMedicamentos(sqLiteDatabase);
+        insertarDatosFranquicias(sqLiteDatabase);
+        insertarDatosTiposMedicamento(sqLiteDatabase);
+        insertarDatosCiudades(sqLiteDatabase);
     }
+
     private void insertarDatosSedes(SQLiteDatabase db) {
         // Array de sentencias SQL para insertar datos de ejemplo
         String[] insertQueries = {
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Libertador 1234', -34.5833, -58.4000, 1, 1)",
+                        "VALUES ('Gregorio Cordovez 675', -29.9032, -71.2477, 2, 1)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Calle Corrientes 5678', -34.6037, -58.3816, 1, 1)",
+                        "VALUES ('Av. Balmaceda N°, 4168', -29.9388, -71.2621, 3, 1)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Santa Fe 910', -34.5953, -58.3889, 2, 1)",
+                        "VALUES ('Av. Gabriela Mistral 3251, Local 1804', -29.9364, -71.2501, 2, 1)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. 9 de Julio 1122', -34.6037, -58.3811, 2, 1)",
+                        "VALUES ('Av Guillermo Ulriksen 3128, Local # 2', -29.94343100723389, -71.24180929545324, 1, 1)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Cabildo 3344', -34.5553, -58.4633, 3, 1)",
+                        "VALUES ('Domeyko N° 55, local 1', -29.96632416261157, -71.33256984927114, 1, 2)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Córdoba 4455', -31.4167, -64.1833, 3, 2)",
+                        "VALUES ('Avenida Varela 1524', -29.9577, -71.3367, 2, 2)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Colón 5566', -31.4135, -64.1811, 4, 2)",
+                        "VALUES ('Av. Pedro Nolasco Videla 348', -29.96330165166066, -71.33577627201232, 4, 2)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Vélez Sarsfield 6677', -31.4172, -64.1856, 4, 2)",
+                        "VALUES ('Av. Balmaceda 3463', -29.932964990411914, -71.26007742532717, 1, 1)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Rafael Núñez 7788', -32.9468, -60.6393, 5, 3)",
+                        "VALUES ('Diego Portales 331', -29.957061905709587, -71.33921970109203, 4, 2)",
 
                 "INSERT INTO sedes (direccion, latitud, longitud, franquicia_id, ciudad_id) " +
-                        "VALUES ('Av. Pellegrini 8899', -32.9571, -60.6435, 5, 3)"
+                        "VALUES ('Esquina - José Santiago Aldunate, Garriga 1308', -29.95566309442654, -71.33888585427798, 2, 2)"
         };
 
         // Ejecutar cada sentencia INSERT dentro de una transacción
@@ -277,16 +279,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "VALUES ('Ibupirac', 'Ibuprofeno', 'Analgésico y antiinflamatorio', 'ibupirac.jpg', 'Pfizer', 1, 0)",
 
                 "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
-                        "VALUES ('Amoxidal', 'Amoxicilina', 'Antibiótico de amplio espectro', 'amoxidal.jpg', 'Roemmers', 2, 1)",
+                        "VALUES ('Amoxidal', 'Amoxicilina', 'Antibiótico de amplio espectro', 'amoxidal.jpg', 'Laboratorio Chile', 2, 1)",
 
                 "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
-                        "VALUES ('Voltaren', 'Diclofenac', 'Antiinflamatorio potente', 'voltaren.jpg', 'Novartis', 3, 0)",
+                        "VALUES ('Voltaren', 'Diclofenac', 'Antiinflamatorio potente', 'voltaren.jpg', 'Laboratorio Chile', 3, 0)",
 
                 "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
-                        "VALUES ('Allegra', 'Fexofenadina', 'Antihistamínico de última generación', 'allegra.jpg', 'Sanofi', 4, 0)",
+                        "VALUES ('Allegra', 'Fexofenadina', 'Antihistamínico de última generación', 'allegra.jpg', 'Pfizer', 4, 0)",
 
                 "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
-                        "VALUES ('Losacor', 'Losartán', 'Antihipertensivo efectivo', 'losacor.jpg', 'Roemmers', 5, 1)"
+                        "VALUES ('Losacor', 'Losartán', 'Antihipertensivo efectivo', 'losacor.jpg', 'Saval', 5, 1)"
         };
 
         executeTransactionBatch(db, insertQueries);
@@ -303,7 +305,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "VALUES ('Antiinflamatorio', 'Medicamentos para reducir la inflamación')",
 
                 "INSERT INTO tipos_medicamento (nombre, descripcion) " +
-                        "VALUES ('Antialérgico', 'Medicamentos para tratar alergias')",
+                        "VALUES ('Antihistaminicos', 'Medicamentos para tratar alergias')",
 
                 "INSERT INTO tipos_medicamento (nombre, descripcion) " +
                         "VALUES ('Antihipertensivo', 'Medicamentos para la presión arterial')"
@@ -311,24 +313,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         executeTransactionBatch(db, insertQueries);
     }
+    private void createCiudades(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE ciudades (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "nombre TEXT NOT NULL)");
+    }
+
+    private void insertarDatosCiudades(SQLiteDatabase db) {
+        String[] insertQueries = {
+                "INSERT INTO ciudades (nombre) VALUES ('La Serena')",
+
+                "INSERT INTO ciudades (nombre) VALUES ('Coquimbo')",
+
+                "INSERT INTO ciudades (nombre) VALUES ('Santiago')"
+
+        };
+
+        executeTransactionBatch(db, insertQueries);
+    }
+
     private void insertarDatosFranquicias(SQLiteDatabase db) {
         String[] insertQueries = {
                 "INSERT INTO franquicias (nombre, descripcion, imagen_url) " +
-                        "VALUES ('Farmacia Central', 'Red líder de farmacias con más de 50 años de experiencia', 'franquicia_central.jpg')",
+                        "VALUES ('Farmacias Ahumada ', 'Red líder de farmacias con más de 50 años de experiencia', 'ahumada.jpg')",
 
                 "INSERT INTO franquicias (nombre, descripcion, imagen_url) " +
-                        "VALUES ('FarmaPlus', 'Cadena moderna de farmacias con servicio 24/7', 'farmaplus_logo.jpg')",
+                        "VALUES ('CruzVerde', 'Cadena moderna de farmacias con servicio 24/7', 'cruzverde.jpg')",
 
                 "INSERT INTO franquicias (nombre, descripcion, imagen_url) " +
-                        "VALUES ('MediFarma', 'Farmacias especializadas en medicamentos de alta complejidad', 'medifarma.jpg')",
+                        "VALUES ('Salcobrand', 'Farmacias especializadas en medicamentos de alta complejidad', 'salcobrand.jpg')",
 
                 "INSERT INTO franquicias (nombre, descripcion, imagen_url) " +
-                        "VALUES ('FarmaSalud', 'Tu farmacia de confianza en todo el país', 'farmasalud_icon.jpg')",
-
-                "INSERT INTO franquicias (nombre, descripcion, imagen_url) " +
-                        "VALUES ('BioFarma', 'Especialistas en productos naturales y medicamentos', 'biofarma.jpg')"
+                        "VALUES ('Dr. Simi', 'Tu farmacia mas económica', 'simi.jpg')"
         };
-
         executeTransactionBatch(db, insertQueries);
     }
     private void executeTransactionBatch(SQLiteDatabase db, String[] queries) {
@@ -349,4 +366,160 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+
+    @SuppressLint("Range")
+    public List<String> getAllTiposMedicamento() {
+        List<String> tipos = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query("tipos_medicamento",
+                new String[]{"nombre"},
+                null, null, null, null, "nombre ASC");
+
+        if (cursor.moveToFirst()) {
+            do {
+                tipos.add(cursor.getString(cursor.getColumnIndex("nombre")));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return tipos;
+    }
+    @SuppressLint("Range")
+    public Ciudad getCiudadById(long ciudadId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Ciudad ciudad = null;
+
+        Cursor cursor = db.query("ciudades", null, "id = ?",
+                new String[]{String.valueOf(ciudadId)}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            ciudad = new Ciudad(
+                    cursor.getLong(cursor.getColumnIndex("id")),
+                    cursor.getString(cursor.getColumnIndex("nombre"))
+            );
+        }
+        cursor.close();
+        return ciudad;
+    }
+
+    @SuppressLint("Range")
+    public List<String> getAllCiudades() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<String> ciudades = new ArrayList<>();
+
+        Cursor cursor = db.query("ciudades", null, null,
+                null, null, null, "nombre ASC"); // Ordenadas alfabéticamente por nombre
+
+        if (cursor.moveToFirst()) {
+            do {
+                ciudades.add(cursor.getString(cursor.getColumnIndex("nombre")));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return ciudades;
+    }
+
+
+    @SuppressLint("Range")
+    public List<String> getAllLaboratorios() {
+        List<String> laboratorios = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(true, "medicamentos",
+                new String[]{"laboratorio"},
+                null, null, "laboratorio", null, "laboratorio ASC", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                laboratorios.add(cursor.getString(cursor.getColumnIndex("laboratorio")));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return laboratorios;
+    }
+
+    @SuppressLint("Range")
+    public List<PrecioMedicamento> getPreciosMedicamentosFiltered(FilterHelper filterHelper) {
+        List<PrecioMedicamento> precios = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        StringBuilder query = new StringBuilder();
+        List<String> selectionArgs = new ArrayList<>();
+
+        // Removido el DISTINCT ya que queremos todas las combinaciones válidas
+        query.append("SELECT pm.*, m.marca, m.compuesto, m.laboratorio, tm.nombre as tipo, s.direccion, c.nombre as ciudad, f.nombre as franquicia ");
+        query.append("FROM precio_medicamento pm ");
+        // Cambiado el orden de los JOINs para asegurar que obtenemos todas las sedes
+        query.append("INNER JOIN sedes s ON pm.sede_id = s.id ");
+        query.append("INNER JOIN ciudades c ON s.ciudad_id = c.id ");
+        query.append("INNER JOIN franquicias f ON s.franquicia_id = f.id ");
+        query.append("INNER JOIN medicamentos m ON pm.medicamento_id = m.id ");
+        query.append("INNER JOIN tipos_medicamento tm ON m.tipo_id = tm.id ");
+
+        // Cambiada la condición inicial para ser más específica
+        List<String> whereConditions = new ArrayList<>();
+
+        if (!filterHelper.getSearchQuery().isEmpty()) {
+            whereConditions.add("(LOWER(m.marca) LIKE ? OR LOWER(m.compuesto) LIKE ?)");
+            String searchPattern = "%" + filterHelper.getSearchQuery().toLowerCase() + "%";
+            selectionArgs.add(searchPattern);
+            selectionArgs.add(searchPattern);
+        }
+
+        if (!filterHelper.getSelectedTipos().isEmpty()) {
+            whereConditions.add("tm.nombre IN (" + generatePlaceholders(filterHelper.getSelectedTipos().size()) + ")");
+            selectionArgs.addAll(filterHelper.getSelectedTipos());
+        }
+
+        if (!filterHelper.getSelectedLaboratorios().isEmpty()) {
+            whereConditions.add("m.laboratorio IN (" + generatePlaceholders(filterHelper.getSelectedLaboratorios().size()) + ")");
+            selectionArgs.addAll(filterHelper.getSelectedLaboratorios());
+        }
+
+        if (!filterHelper.getSelectedCiudades().isEmpty()) {
+            whereConditions.add("c.nombre IN (" + generatePlaceholders(filterHelper.getSelectedCiudades().size()) + ")");
+            selectionArgs.addAll(filterHelper.getSelectedCiudades());
+        }
+
+        // Agregar las condiciones WHERE solo si hay filtros
+        if (!whereConditions.isEmpty()) {
+            query.append("WHERE ").append(String.join(" AND ", whereConditions));
+        }
+
+        query.append(" ORDER BY m.marca ASC, s.id ASC"); // Agregado ordenamiento por sede
+
+        Cursor cursor = db.rawQuery(query.toString(), selectionArgs.toArray(new String[0]));
+
+        if (cursor.moveToFirst()) {
+            do {
+                PrecioMedicamento precio = new PrecioMedicamento(
+                        cursor.getLong(cursor.getColumnIndex("id")),
+                        cursor.getLong(cursor.getColumnIndex("medicamento_id")),
+                        cursor.getLong(cursor.getColumnIndex("sede_id")),
+                        cursor.getDouble(cursor.getColumnIndex("precio"))
+                );
+
+                String nombreMedicamento = cursor.getString(cursor.getColumnIndex("marca")) +
+                        " (" + cursor.getString(cursor.getColumnIndex("compuesto")) + ")";
+                precio.setNombreMedicamento(nombreMedicamento);
+                precio.setDireccionSede(cursor.getString(cursor.getColumnIndex("direccion")));
+                // Agregar información adicional si es necesario
+                //precio.setFranquicia(cursor.getString(cursor.getColumnIndex("franquicia")));
+                //precio.setCiudad(cursor.getString(cursor.getColumnIndex("ciudad")));
+
+                precios.add(precio);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return precios;
+    }
+
+    private String generatePlaceholders(int count) {
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            if (i > 0) placeholders.append(",");
+            placeholders.append("?");
+        }
+        return placeholders.toString();
+    }
 }

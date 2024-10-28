@@ -1,7 +1,10 @@
 package com.example.pruebamedicamento;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,14 +20,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,FilterDialogFragment.OnFilterAppliedListener {
+
     private MapView mapView;
     private GoogleMap mMap;
     private DatabaseHelper dbHelper;
     private BottomSheetDialog bottomSheetDialog;
+    private FilterHelper filterHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Inicializar DatabaseHelper
         dbHelper = new DatabaseHelper(this);
+        filterHelper = new FilterHelper();
 
         // Inicializar MapView
         mapView = findViewById(R.id.mapView);
@@ -43,8 +52,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
         bottomSheetDialog.setContentView(bottomSheetView);
-    }
 
+        // Agregar botón de filtro
+        FloatingActionButton fabFilter = findViewById(R.id.fabFilter);
+        fabFilter.setOnClickListener(v -> showFilterDialog());
+    }
+    private void showFilterDialog() {
+        FilterDialogFragment filterDialog = FilterDialogFragment.newInstance();
+        filterDialog.setFilterHelper(filterHelper);
+        filterDialog.setOnFilterAppliedListener(this);
+        filterDialog.show(getSupportFragmentManager(), "FilterDialog");
+    }
+    @Override
+    public void onFilterApplied(FilterHelper filterHelper) {
+        // Aquí actualizas tu vista con los resultados filtrados
+        List<PrecioMedicamento> preciosFiltrados = dbHelper.getPreciosMedicamentosFiltered(filterHelper);
+        // Actualizar tu vista con los resultados
+        updateMapWithFilteredResults(preciosFiltrados);
+    }
+    private void updateMapWithFilteredResults(List<PrecioMedicamento> precios) {
+        mMap.clear(); // Limpiar marcadores existentes
+
+        // Crear un HashSet para almacenar las sedes únicas
+        Set<Long> sedesAgregadas = new HashSet<>();
+
+        for (PrecioMedicamento precio : precios) {
+            long sedeId = precio.getSedeId();
+
+            // Solo agregar la sede si no ha sido agregada antes
+            if (!sedesAgregadas.contains(sedeId)) {
+                Sede sede = dbHelper.getSedeById(sedeId);
+                if (sede != null) {
+                    LatLng position = new LatLng(sede.getLatitud(), sede.getLongitud());
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(position)
+                            .title(sede.getDireccion());
+
+                    Marker marker = mMap.addMarker(markerOptions);
+                    marker.setTag(sedeId);
+
+                    sedesAgregadas.add(sedeId);
+                }
+            }
+        }
+
+        // Si hay resultados, hacer zoom al primer marcador
+        if (!sedesAgregadas.isEmpty()) {
+            long firstSedeId = precios.get(0).getSedeId();
+            Sede firstSede = dbHelper.getSedeById(firstSedeId);
+            if (firstSede != null) {
+                LatLng position = new LatLng(firstSede.getLatitud(), firstSede.getLongitud());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 12f));
+            }
+        }
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
