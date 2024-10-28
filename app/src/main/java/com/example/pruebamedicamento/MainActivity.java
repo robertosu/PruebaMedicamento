@@ -71,6 +71,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         updateMapWithFilteredResults(preciosFiltrados);
     }
     private void updateMapWithFilteredResults(List<PrecioMedicamento> precios) {
+        if (filterHelper.getSearchQuery().isEmpty() &&
+                filterHelper.getSelectedTipos().isEmpty() &&
+                filterHelper.getSelectedLaboratorios().isEmpty() &&
+                filterHelper.getSelectedCiudades().isEmpty()) {
+            // Si no hay filtros activos, mostrar todas las sedes
+            loadSedes();
+            return;
+        }
+
         mMap.clear(); // Limpiar marcadores existentes
 
         // Crear un HashSet para almacenar las sedes únicas
@@ -130,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .title(sede.getDireccion());
 
             Marker marker = mMap.addMarker(markerOptions);
+            // Guardamos el id de la sede en el tag del marker
             marker.setTag(sede.getId());
         }
 
@@ -140,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @SuppressLint("DefaultLocale")
     private void showPreciosMedicamentos(long sedeId) {
         List<PrecioMedicamento> precios = dbHelper.getPreciosMedicamentosPorSede(sedeId);
 
@@ -149,8 +158,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        // Obtener la vista del BottomSheet
-        View bottomSheetView = bottomSheetDialog.getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+        // Asegurarnos de que el BottomSheet anterior se cierre y se limpie
+        if (bottomSheetDialog != null && bottomSheetDialog.isShowing()) {
+            bottomSheetDialog.dismiss();
+        }
+
+        // Crear un nuevo BottomSheetDialog
+        bottomSheetDialog = new BottomSheetDialog(this);
+
+        // Inflar la vista una sola vez
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
 
         // Obtener referencias a las vistas
         TextView tvFranquiciaNombre = bottomSheetView.findViewById(R.id.tvFranquiciaNombre);
@@ -165,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         tvFranquiciaNombre.setText(franquicia.getNombre());
         tvSedeNombre.setText(sede.getDireccion());
 
-        // Limpiar el container de medicamentos
+        // Limpiar el container antes de agregar nuevos items
         medicamentosContainer.removeAllViews();
 
         // Agregar los precios de los medicamentos
@@ -180,12 +198,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             medicamentosContainer.addView(itemView);
         }
 
+        // Agregar listener para cuando se cierre el BottomSheet
+        bottomSheetDialog.setOnDismissListener(dialog -> {
+            // Limpiar recursos si es necesario
+            medicamentosContainer.removeAllViews();
+        });
+
         // Mostrar el BottomSheet
-        if (bottomSheetDialog.isShowing()) {
-            bottomSheetDialog.dismiss();
-        }
-        bottomSheetDialog = new BottomSheetDialog(this);
-        bottomSheetDialog.setContentView(bottomSheetView);
         bottomSheetDialog.show();
     }
 

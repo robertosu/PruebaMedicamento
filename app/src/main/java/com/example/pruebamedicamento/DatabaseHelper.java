@@ -17,34 +17,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // Consulta para obtener precios y detalles de medicamentos por sede
+    // Consulta para obtener precios y detalles de medicamentos por franquicia
     @SuppressLint("Range")
     public List<PrecioMedicamento> getPreciosMedicamentosPorSede(long sedeId) {
         List<PrecioMedicamento> precios = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String query = "SELECT pm.*, m.marca, m.compuesto, s.direccion " +
+        // Primero obtenemos la franquicia_id de la sede
+        Sede sede = getSedeById(sedeId);
+        if (sede == null) return precios;
+
+        String query = "SELECT pm.*, m.marca, m.compuesto, f.nombre as franquicia_nombre " +
                 "FROM precio_medicamento pm " +
                 "INNER JOIN medicamentos m ON pm.medicamento_id = m.id " +
-                "INNER JOIN sedes s ON pm.sede_id = s.id " +
-                "WHERE pm.sede_id = ?";
+                "INNER JOIN franquicias f ON pm.franquicia_id = f.id " +
+                "WHERE pm.franquicia_id = ?";
 
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(sedeId)});
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(sede.getFranquiciaId())});
 
         if (cursor.moveToFirst()) {
             do {
-                @SuppressLint("Range") PrecioMedicamento precio = new PrecioMedicamento(
+                PrecioMedicamento precio = new PrecioMedicamento(
                         cursor.getLong(cursor.getColumnIndex("id")),
                         cursor.getLong(cursor.getColumnIndex("medicamento_id")),
-                        cursor.getLong(cursor.getColumnIndex("sede_id")),
+                        sedeId, // Guardamos el sedeId original
                         cursor.getDouble(cursor.getColumnIndex("precio"))
                 );
 
-                // Establecer información adicional
-                @SuppressLint("Range") String nombreMedicamento = cursor.getString(cursor.getColumnIndex("marca")) +
+                String nombreMedicamento = cursor.getString(cursor.getColumnIndex("marca")) +
                         " (" + cursor.getString(cursor.getColumnIndex("compuesto")) + ")";
                 precio.setNombreMedicamento(nombreMedicamento);
-                precio.setDireccionSede(cursor.getString(cursor.getColumnIndex("direccion")));
+                precio.setNombreFranquicia(cursor.getString(cursor.getColumnIndex("franquicia_nombre")));
 
                 precios.add(precio);
             } while (cursor.moveToNext());
@@ -133,10 +136,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE precio_medicamento (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "medicamento_id INTEGER NOT NULL," +
-                "sede_id INTEGER NOT NULL," +
+                "franquicia_id INTEGER NOT NULL," + // Cambiado de sede_id a franquicia_id
                 "precio REAL NOT NULL," +
                 "FOREIGN KEY (medicamento_id) REFERENCES medicamentos(id)," +
-                "FOREIGN KEY (sede_id) REFERENCES sedes(id))");
+                "FOREIGN KEY (franquicia_id) REFERENCES franquicias(id))"); // Nueva foreign key
     }
     private void createFranquicias(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE franquicias (" +
@@ -165,6 +168,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        initBd(sqLiteDatabase);
+    }
+
+    private void initBd(SQLiteDatabase sqLiteDatabase) {
         createSedes(sqLiteDatabase);
         createPrecioMedicamento(sqLiteDatabase);
         createFranquicias(sqLiteDatabase);
@@ -232,30 +239,54 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void insertarDatosPrecioMedicamento(SQLiteDatabase db) {
         // Array de sentencias SQL para insertar datos de ejemplo
         String[] insertQueries = {
-                // Precios para el medicamento 1 en diferentes sedes
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (1, 1, 1250.50)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (1, 2, 1280.00)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (1, 3, 1245.75)",
+                // Ahora los precios se asocian con franquicias en lugar de sedes
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (1, 1, 1250.50)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (1, 2, 1280.00)",
 
-                // Precios para el medicamento 2 en diferentes sedes
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (2, 1, 850.25)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (2, 2, 875.50)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (2, 4, 860.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (1, 4, 1045.75)",
 
-                // Precios para el medicamento 3 en diferentes sedes
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (3, 1, 2100.00)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (3, 3, 2150.75)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (3, 5, 2080.25)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (2, 1, 850.25)",
 
-                // Precios para el medicamento 4 en diferentes sedes
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (4, 2, 3450.50)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (4, 4, 3425.75)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (4, 6, 3400.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (2, 3, 860.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (2, 4, 760.00)",
 
-                // Precios para el medicamento 5 en diferentes sedes
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (5, 1, 945.25)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (5, 3, 960.50)",
-                "INSERT INTO precio_medicamento (medicamento_id, sede_id, precio) VALUES (5, 5, 955.75)"
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (3, 1, 2100.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (3, 2, 2150.75)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (3, 4, 1880.25)",
+
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (4, 2, 3425.75)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (4, 3, 3400.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (4, 4, 3200.00)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (5, 1, 945.25)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (5, 2, 960.50)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (5, 4, 855.75)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (6, 1, 500.00)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (6, 3, 510.25)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (6, 4, 480.00)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (7, 1, 300.25)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (7, 3, 305.75)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (7, 4, 290.75)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (8, 1, 1500.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (8, 2, 1525.50)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (8, 4, 1450.00)",
+
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (9, 2, 1225.75)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (9, 3, 1190.00)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (9, 4, 1150.00)",
+
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (10, 1, 950.25)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (10, 2, 970.50)",
+                "INSERT INTO precio_medicamento (medicamento_id, franquicia_id, precio) VALUES (10, 3, 960.75)",
+
         };
 
         // Ejecutar cada sentencia INSERT dentro de una transacción
@@ -288,7 +319,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "VALUES ('Allegra', 'Fexofenadina', 'Antihistamínico de última generación', 'allegra.jpg', 'Pfizer', 4, 0)",
 
                 "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
-                        "VALUES ('Losacor', 'Losartán', 'Antihipertensivo efectivo', 'losacor.jpg', 'Saval', 5, 1)"
+                        "VALUES ('Losacor', 'Losartán', 'Antihipertensivo efectivo', 'losacor.jpg', 'Saval', 5, 1)",
+
+                "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
+                        "VALUES ('Aspirina', 'Ácido acetilsalicílico', 'Analgésico y anticoagulante', 'aspirina.jpg', 'Bayer', 1, 0)",
+
+                "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
+                        "VALUES ('Kitadol', 'Paracetamol', 'Analgésico y antipirético', 'paracetamol.jpg', 'Laboratorio Chile', 1, 0)",
+
+                "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
+                        "VALUES ('Ciproflex', 'Ciprofloxacino', 'Antibiótico para infecciones bacterianas', 'ciproflex.jpg', 'Saval', 2, 1)",
+
+                "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
+                        "VALUES ('Cetrizin', 'Cetirizina', 'Antihistamínico para alergias', 'cetirizin.jpg', 'Saval', 4, 0)",
+
+                "INSERT INTO medicamentos (marca, compuesto, descripcion, foto_url, laboratorio, tipo_id, receta) " +
+                        "VALUES ('Enpril', 'Enalapril', 'Antihipertensivo para la presión arterial', 'enpril.jpg', 'Andrómaco', 5, 1)"
+
         };
 
         executeTransactionBatch(db, insertQueries);
@@ -446,17 +493,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         StringBuilder query = new StringBuilder();
         List<String> selectionArgs = new ArrayList<>();
 
-        // Removido el DISTINCT ya que queremos todas las combinaciones válidas
-        query.append("SELECT pm.*, m.marca, m.compuesto, m.laboratorio, tm.nombre as tipo, s.direccion, c.nombre as ciudad, f.nombre as franquicia ");
-        query.append("FROM precio_medicamento pm ");
-        // Cambiado el orden de los JOINs para asegurar que obtenemos todas las sedes
-        query.append("INNER JOIN sedes s ON pm.sede_id = s.id ");
+        // Construimos la consulta empezando desde franquicias
+        query.append("SELECT DISTINCT s.id as sede_id, s.direccion, s.latitud, s.longitud, ");
+        query.append("pm.id, pm.medicamento_id, pm.precio, ");
+        query.append("m.marca, m.compuesto, m.laboratorio, ");
+        query.append("tm.nombre as tipo, c.nombre as ciudad, f.nombre as franquicia ");
+        query.append("FROM franquicias f ");
+        query.append("INNER JOIN sedes s ON f.id = s.franquicia_id ");
+        query.append("LEFT JOIN precio_medicamento pm ON f.id = pm.franquicia_id ");
+        query.append("LEFT JOIN medicamentos m ON pm.medicamento_id = m.id ");
+        query.append("LEFT JOIN tipos_medicamento tm ON m.tipo_id = tm.id ");
         query.append("INNER JOIN ciudades c ON s.ciudad_id = c.id ");
-        query.append("INNER JOIN franquicias f ON s.franquicia_id = f.id ");
-        query.append("INNER JOIN medicamentos m ON pm.medicamento_id = m.id ");
-        query.append("INNER JOIN tipos_medicamento tm ON m.tipo_id = tm.id ");
 
-        // Cambiada la condición inicial para ser más específica
         List<String> whereConditions = new ArrayList<>();
 
         if (!filterHelper.getSearchQuery().isEmpty()) {
@@ -481,33 +529,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             selectionArgs.addAll(filterHelper.getSelectedCiudades());
         }
 
-        // Agregar las condiciones WHERE solo si hay filtros
         if (!whereConditions.isEmpty()) {
             query.append("WHERE ").append(String.join(" AND ", whereConditions));
         }
 
-        query.append(" ORDER BY m.marca ASC, s.id ASC"); // Agregado ordenamiento por sede
+        query.append(" ORDER BY s.id ASC");
 
         Cursor cursor = db.rawQuery(query.toString(), selectionArgs.toArray(new String[0]));
 
         if (cursor.moveToFirst()) {
             do {
-                PrecioMedicamento precio = new PrecioMedicamento(
-                        cursor.getLong(cursor.getColumnIndex("id")),
-                        cursor.getLong(cursor.getColumnIndex("medicamento_id")),
-                        cursor.getLong(cursor.getColumnIndex("sede_id")),
-                        cursor.getDouble(cursor.getColumnIndex("precio"))
-                );
+                if (!cursor.isNull(cursor.getColumnIndex("precio"))) {
+                    PrecioMedicamento precio = new PrecioMedicamento(
+                            cursor.getLong(cursor.getColumnIndex("id")),
+                            cursor.getLong(cursor.getColumnIndex("medicamento_id")),
+                            cursor.getLong(cursor.getColumnIndex("sede_id")),
+                            cursor.getDouble(cursor.getColumnIndex("precio"))
+                    );
 
-                String nombreMedicamento = cursor.getString(cursor.getColumnIndex("marca")) +
-                        " (" + cursor.getString(cursor.getColumnIndex("compuesto")) + ")";
-                precio.setNombreMedicamento(nombreMedicamento);
-                precio.setDireccionSede(cursor.getString(cursor.getColumnIndex("direccion")));
-                // Agregar información adicional si es necesario
-                //precio.setFranquicia(cursor.getString(cursor.getColumnIndex("franquicia")));
-                //precio.setCiudad(cursor.getString(cursor.getColumnIndex("ciudad")));
+                    String nombreMedicamento = cursor.getString(cursor.getColumnIndex("marca")) +
+                            " (" + cursor.getString(cursor.getColumnIndex("compuesto")) + ")";
+                    precio.setNombreMedicamento(nombreMedicamento);
+                    precio.setDireccionSede(cursor.getString(cursor.getColumnIndex("direccion")));
+                    precio.setNombreFranquicia(cursor.getString(cursor.getColumnIndex("franquicia")));
 
-                precios.add(precio);
+
+                    precios.add(precio);
+                }
             } while (cursor.moveToNext());
         }
         cursor.close();
