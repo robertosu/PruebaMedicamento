@@ -78,6 +78,47 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return sedes;
     }
+    @SuppressLint("Range")
+    public Sede getSedeById(long sedeId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Sede sede = null;
+
+        Cursor cursor = db.query("sedes", null, "id = ?",
+                new String[]{String.valueOf(sedeId)}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            sede = new Sede(
+                    cursor.getLong(cursor.getColumnIndex("id")),
+                    cursor.getString(cursor.getColumnIndex("direccion")),
+                    cursor.getDouble(cursor.getColumnIndex("latitud")),
+                    cursor.getDouble(cursor.getColumnIndex("longitud")),
+                    cursor.getLong(cursor.getColumnIndex("franquicia_id")),
+                    cursor.getLong(cursor.getColumnIndex("ciudad_id"))
+            );
+        }
+        cursor.close();
+        return sede;
+    }
+
+    @SuppressLint("Range")
+    public Franquicia getFranquiciaById(long franquiciaId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Franquicia franquicia = null;
+
+        Cursor cursor = db.query("franquicias", null, "id = ?",
+                new String[]{String.valueOf(franquiciaId)}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            franquicia = new Franquicia(
+                    cursor.getLong(cursor.getColumnIndex("id")),
+                    cursor.getString(cursor.getColumnIndex("nombre")),
+                    cursor.getString(cursor.getColumnIndex("descripcion")),
+                    cursor.getString(cursor.getColumnIndex("imagen_url"))
+            );
+        }
+        cursor.close();
+        return franquicia;
+    }
     private void createSedes(SQLiteDatabase db){
         db.execSQL("CREATE TABLE sedes (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -307,4 +348,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
     }
+
 }

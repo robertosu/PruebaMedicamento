@@ -1,25 +1,22 @@
 package com.example.pruebamedicamento;
 
-import android.graphics.Color;
-import android.graphics.Typeface;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.List;
 
@@ -27,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MapView mapView;
     private GoogleMap mMap;
     private DatabaseHelper dbHelper;
+    private BottomSheetDialog bottomSheetDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +38,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        // Inicializar BottomSheetDialog
+        bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
     }
 
     @Override
@@ -66,10 +69,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .title(sede.getDireccion());
 
             Marker marker = mMap.addMarker(markerOptions);
-            marker.setTag(sede.getId()); // Guardamos el ID de la sede en el marcador
+            marker.setTag(sede.getId());
         }
 
-        // Si hay sedes, centrar el mapa en la primera
         if (!sedes.isEmpty()) {
             Sede firstSede = sedes.get(0);
             LatLng position = new LatLng(firstSede.getLatitud(), firstSede.getLongitud());
@@ -77,7 +79,56 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    // Es necesario implementar los métodos del ciclo de vida para MapView
+    @SuppressLint("DefaultLocale")
+    private void showPreciosMedicamentos(long sedeId) {
+        List<PrecioMedicamento> precios = dbHelper.getPreciosMedicamentosPorSede(sedeId);
+
+        if (precios.isEmpty()) {
+            Toast.makeText(this, "No hay precios disponibles para esta sede", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Obtener la vista del BottomSheet
+        View bottomSheetView = bottomSheetDialog.getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+
+        // Obtener referencias a las vistas
+        TextView tvFranquiciaNombre = bottomSheetView.findViewById(R.id.tvFranquiciaNombre);
+        TextView tvSedeNombre = bottomSheetView.findViewById(R.id.tvSedeNombre);
+        LinearLayout medicamentosContainer = bottomSheetView.findViewById(R.id.medicamentosContainer);
+
+        // Obtener información de la sede y franquicia
+        Sede sede = dbHelper.getSedeById(sedeId);
+        Franquicia franquicia = dbHelper.getFranquiciaById(sede.getFranquiciaId());
+
+        // Establecer la información de la franquicia y sede
+        tvFranquiciaNombre.setText(franquicia.getNombre());
+        tvSedeNombre.setText(sede.getDireccion());
+
+        // Limpiar el container de medicamentos
+        medicamentosContainer.removeAllViews();
+
+        // Agregar los precios de los medicamentos
+        for (PrecioMedicamento precio : precios) {
+            View itemView = getLayoutInflater().inflate(R.layout.item_medicamento, medicamentosContainer, false);
+            TextView tvMedicamento = itemView.findViewById(R.id.tvMedicamento);
+            TextView tvPrecio = itemView.findViewById(R.id.tvPrecio);
+
+            tvMedicamento.setText(precio.getNombreMedicamento());
+            tvPrecio.setText(String.format("$%.2f", precio.getPrecio()));
+
+            medicamentosContainer.addView(itemView);
+        }
+
+        // Mostrar el BottomSheet
+        if (bottomSheetDialog.isShowing()) {
+            bottomSheetDialog.dismiss();
+        }
+        bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
+    }
+
+    // Métodos del ciclo de vida para MapView
     @Override
     protected void onResume() {
         super.onResume();
@@ -106,54 +157,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
-    }
-
-    private void showPreciosMedicamentos(long sedeId) {
-        List<PrecioMedicamento> precios = dbHelper.getPreciosMedicamentosPorSede(sedeId);
-
-        if (precios.isEmpty()) {
-            Toast.makeText(this, "No hay precios disponibles para esta sede", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Crear el diálogo con la información
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Precios de Medicamentos");
-
-        // Crear el layout para mostrar los precios
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(16, 16, 16, 16);
-
-        // Agregar la dirección de la sede
-        TextView tvDireccion = new TextView(this);
-        tvDireccion.setText("Sede: " + precios.get(0).getDireccionSede());
-        tvDireccion.setTypeface(null, Typeface.BOLD);
-        layout.addView(tvDireccion);
-
-        // Agregar un separador
-        View separator = new View(this);
-        separator.setBackgroundColor(Color.GRAY);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 2);
-        params.setMargins(0, 8, 0, 8);
-        separator.setLayoutParams(params);
-        layout.addView(separator);
-
-        // Agregar cada medicamento y su precio
-        for (PrecioMedicamento precio : precios) {
-            TextView tvMedicamento = new TextView(this);
-            tvMedicamento.setText(String.format("%s\nPrecio: $%.2f",
-                    precio.getNombreMedicamento(), precio.getPrecio()));
-            tvMedicamento.setPadding(0, 4, 0, 4);
-            layout.addView(tvMedicamento);
-        }
-
-        ScrollView scrollView = new ScrollView(this);
-        scrollView.addView(layout);
-        builder.setView(scrollView);
-
-        builder.setPositiveButton("Cerrar", null);
-        builder.show();
     }
 }
