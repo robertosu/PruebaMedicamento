@@ -1,6 +1,7 @@
 package com.example.pruebamedicamento;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.FirebaseApp;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FilterHelper filterHelper;
     private FirebaseSyncHelper dbSyncHelper;
     private ProgressBar progressBar;
-    private Button btnDownload;
+    private FloatingActionButton btnDownload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +75,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnDownload = findViewById(R.id.btnDownload);
         findViewById(R.id.btnSync).setOnClickListener(v -> testSync());
         btnDownload.setOnClickListener(v -> downloadDataManually());
+
+        // Configurar BottomNavigationView
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav.setSelectedItemId(R.id.menu_inicio);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_inicio) {
+                return true;
+            } else if (itemId == R.id.menu_recycler) {
+                startActivity(new Intent(this, ListaFarmaciasActivity.class));
+                finish();
+                return true;
+            } else if (itemId == R.id.menu_categoria) {
+                // Implementar más tarde
+                return true;
+            }
+            return false;
+        });
     }
     private void testSync() {
         dbSyncHelper.uploadAllDataToFirebase(new FirebaseSyncHelper.OnSyncCompleteListener() {
+
+            //en operacion satisfactoria
             @Override
             public void onTableSynced(String tableName) {
                 Log.d("Firebase", "Tabla sincronizada: " + tableName);
@@ -83,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         "Tabla sincronizada: " + tableName,
                         Toast.LENGTH_SHORT).show();
             }
-
+            //en caso de error
             @Override
             public void onSyncError(String error) {
                 Log.e("Firebase", "Error de sincronización: " + error);
@@ -98,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         progressBar.setVisibility(View.VISIBLE);
 
         dbSyncHelper.downloadDataFromFirebase(new FirebaseSyncHelper.OnSyncCompleteListener() {
+            //en operacion satisfactoria
             @Override
             public void onTableSynced(String tableName) {
                 runOnUiThread(() -> {
@@ -107,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
 
             }
-
+            //en caso de error
             @Override
             public void onSyncError(String error) {
                 runOnUiThread(() -> {
@@ -231,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Crear un nuevo BottomSheetDialog
         bottomSheetDialog = new BottomSheetDialog(this);
 
-        // Inflar la vista una sola vez
+        // Inflar la vista
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
@@ -272,6 +295,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Mostrar el BottomSheet
         bottomSheetDialog.show();
     }
+//  Menu de navegacion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Métodos del ciclo de vida para MapView
     @Override

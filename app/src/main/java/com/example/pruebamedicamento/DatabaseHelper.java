@@ -222,19 +222,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         };
 
         // Ejecutar cada sentencia INSERT dentro de una transacción
-        try {
-            db.beginTransaction();
-
-            for (String query : insertQueries) {
-                db.execSQL(query);
-            }
-
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            db.endTransaction();
-        }
+        executeTransactionBatch(db,insertQueries);
     }
     private void insertarDatosPrecioMedicamento(SQLiteDatabase db) {
         // Array de sentencias SQL para insertar datos de ejemplo
@@ -290,19 +278,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         };
 
         // Ejecutar cada sentencia INSERT dentro de una transacción
-        try {
-            db.beginTransaction();
-
-            for (String query : insertQueries) {
-                db.execSQL(query);
-            }
-
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            db.endTransaction();
-        }
+        executeTransactionBatch(db,insertQueries);
     }
     private void insertarDatosMedicamentos(SQLiteDatabase db) {
         String[] insertQueries = {
@@ -395,6 +371,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         };
         executeTransactionBatch(db, insertQueries);
     }
+
+    //ejecutar sentencias SQL controlando errores
     private void executeTransactionBatch(SQLiteDatabase db, String[] queries) {
         try {
             db.beginTransaction();
