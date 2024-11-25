@@ -2,6 +2,8 @@ package com.example.pruebamedicamento.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.pruebamedicamento.adapter.MedicamentoSedeAdapter;
 import com.example.pruebamedicamento.dbhelper.DatabaseHelper;
 import com.example.pruebamedicamento.fragment.FilterDialogFragment;
 import com.example.pruebamedicamento.filterhelper.FilterHelper;
@@ -125,35 +128,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
     private void downloadDataManually() {
+        // Deshabilitar el botón y mostrar el progreso
         btnDownload.setEnabled(false);
         progressBar.setVisibility(View.VISIBLE);
 
         dbSyncHelper.downloadDataFromFirebase(new FirebaseSyncHelper.OnSyncCompleteListener() {
-            //en operacion satisfactoria
             @Override
             public void onTableSynced(String tableName) {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this,
                             "Tabla descargada: " + tableName,
                             Toast.LENGTH_SHORT).show();
-                });
 
+                    // Ocultar la barra de progreso
+                    progressBar.setVisibility(View.GONE);
+
+                    // Activar cooldown
+                    enableButtonAfterCooldown();
+                });
             }
-            //en caso de error
+
             @Override
             public void onSyncError(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this,
                             "Error: " + error,
                             Toast.LENGTH_LONG).show();
-                    btnDownload.setEnabled(true);
+
+                    // Ocultar la barra de progreso
                     progressBar.setVisibility(View.GONE);
+
+                    // Activar cooldown (aunque haya error)
+                    enableButtonAfterCooldown();
                 });
             }
         });
-        progressBar.setVisibility(View.GONE);
-        btnDownload.setEnabled(true);
     }
+
+    private void enableButtonAfterCooldown() {
+        // Tiempo de cooldown en milisegundos (e.g., 5 segundos)
+        int cooldownTime = 15000;
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            btnDownload.setEnabled(true);
+        }, cooldownTime);
+    }
+
     private void showFilterDialog() {
         FilterDialogFragment filterDialog = FilterDialogFragment.newInstance();
         filterDialog.setFilterHelper(filterHelper);
@@ -291,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        MedicamentoAdapter adapter = new MedicamentoAdapter(precios, dbHelper);
+        MedicamentoSedeAdapter adapter = new MedicamentoSedeAdapter(precios);
         recyclerView.setAdapter(adapter);
 
         bottomSheetDialog.show();
