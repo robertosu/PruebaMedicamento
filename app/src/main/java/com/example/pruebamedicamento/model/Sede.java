@@ -1,4 +1,4 @@
-package com.example.pruebamedicamento;
+package com.example.pruebamedicamento.model;
 
 public class Sede {
     private long id;

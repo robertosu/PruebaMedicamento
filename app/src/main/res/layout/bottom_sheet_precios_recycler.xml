@@ -1,29 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvFranquiciaNombre"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+    <ImageView
+        android:id="@+id/ivLogo"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="16dp"
+        android:contentDescription="Logo de la franquicia"
+        android:scaleType="centerCrop" />
 
-    <TextView
-        android:id="@+id/tvSedeNombre"
+    <LinearLayout
+        android:id="@+id/layoutInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_toStartOf="@id/ivLogo"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvFranquiciaNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSedeNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewMedicamentos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/layoutInfo"
         android:clipToPadding="false"
         android:paddingBottom="8dp"/>
-</LinearLayout>
+
+</RelativeLayout>

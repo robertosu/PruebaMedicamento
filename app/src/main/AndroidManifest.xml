@@ -15,10 +15,13 @@
         android:theme="@style/Theme.PruebaMedicamento"
         tools:targetApi="31">
         <activity
-            android:name=".ListaFarmaciasActivity"
+            android:name=".activity.ListaFarmaciasActivity"
             android:exported="false" />
         <activity
-            android:name=".ListaFarmaciasActivity"
+            android:name=".activity.MedicamentosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.CategoriasActivity"
             android:exported="false" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
@@ -36,7 +39,7 @@
             android:value="AIzaSyAY2VK5SsgYOHZGmk4shdhmEbTlLLNzpVU" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package com.example.pruebamedicamento;
+package com.example.pruebamedicamento.dbhelper;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

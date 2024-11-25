@@ -1,4 +1,4 @@
-package com.example.pruebamedicamento;
+package com.example.pruebamedicamento.fragment;
 
 
 import android.app.Dialog;
@@ -11,6 +11,11 @@ import android.widget.LinearLayout;
 import android.widget.SearchView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.example.pruebamedicamento.filterhelper.FilterHelper;
+import com.example.pruebamedicamento.R;
+import com.example.pruebamedicamento.dbhelper.DatabaseHelper;
+
 import java.util.List;
 
 public class FilterDialogFragment extends DialogFragment {

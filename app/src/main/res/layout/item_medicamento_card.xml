@@ -20,7 +20,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="16sp"/>
-
+        <TextView
+            android:id="@+id/tvFranquicia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tvMedicamento"
+            app:layout_constraintStart_toStartOf="@+id/tvMedicamento" />
         <TextView
             android:id="@+id/tvPrecio"
             android:layout_width="wrap_content"

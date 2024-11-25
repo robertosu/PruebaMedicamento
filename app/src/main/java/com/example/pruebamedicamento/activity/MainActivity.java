@@ -1,21 +1,29 @@
-package com.example.pruebamedicamento;
+package com.example.pruebamedicamento.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.example.pruebamedicamento.dbhelper.DatabaseHelper;
+import com.example.pruebamedicamento.fragment.FilterDialogFragment;
+import com.example.pruebamedicamento.filterhelper.FilterHelper;
+import com.example.pruebamedicamento.dbhelper.FirebaseSyncHelper;
+import com.example.pruebamedicamento.R;
+import com.example.pruebamedicamento.adapter.MedicamentoAdapter;
+import com.example.pruebamedicamento.model.Franquicia;
+import com.example.pruebamedicamento.model.PrecioMedicamento;
+import com.example.pruebamedicamento.model.Sede;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -32,7 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,FilterDialogFragment.OnFilterAppliedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, FilterDialogFragment.OnFilterAppliedListener {
 
     private MapView mapView;
     private GoogleMap mMap;
@@ -63,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Inicializar BottomSheetDialog
         bottomSheetDialog = new BottomSheetDialog(this);
-        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios_recycler, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
         // Agregar botón de filtro
@@ -78,17 +86,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Configurar BottomNavigationView
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        bottomNav.setSelectedItemId(R.id.menu_inicio);
+        bottomNav.setSelectedItemId(R.id.menu_mapa);
         bottomNav.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.menu_inicio) {
+            if (itemId == R.id.menu_mapa) {
                 return true;
             } else if (itemId == R.id.menu_recycler) {
                 startActivity(new Intent(this, ListaFarmaciasActivity.class));
                 finish();
                 return true;
             } else if (itemId == R.id.menu_categoria) {
-                // Implementar más tarde
+                startActivity(new Intent(this, CategoriasActivity.class));
+                finish();
                 return true;
             }
             return false;
@@ -239,60 +248,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showPreciosMedicamentos(long sedeId) {
-        List<PrecioMedicamento> precios = dbHelper.getPreciosMedicamentosPorSede(sedeId);
+        // Obtener precios filtrados en lugar de todos los precios
+        List<PrecioMedicamento> precios;
+        if (filterHelper.hasActiveFilters()) {
+            precios = dbHelper.getPreciosMedicamentosFiltered(filterHelper, sedeId);
+        } else {
+            precios = dbHelper.getPreciosMedicamentosPorSede(sedeId);
+        }
 
         if (precios.isEmpty()) {
-            Toast.makeText(this, "No hay precios disponibles para esta sede", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No hay medicamentos que coincidan con los filtros en esta sede", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Asegurarnos de que el BottomSheet anterior se cierre y se limpie
         if (bottomSheetDialog != null && bottomSheetDialog.isShowing()) {
             bottomSheetDialog.dismiss();
         }
 
-        // Crear un nuevo BottomSheetDialog
         bottomSheetDialog = new BottomSheetDialog(this);
-
-        // Inflar la vista
-        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios, null);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_precios_recycler, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
-        // Obtener referencias a las vistas
         TextView tvFranquiciaNombre = bottomSheetView.findViewById(R.id.tvFranquiciaNombre);
         TextView tvSedeNombre = bottomSheetView.findViewById(R.id.tvSedeNombre);
-        LinearLayout medicamentosContainer = bottomSheetView.findViewById(R.id.medicamentosContainer);
+        ImageView ivLogo = bottomSheetView.findViewById(R.id.ivLogo);
+        RecyclerView recyclerView = bottomSheetView.findViewById(R.id.recyclerViewMedicamentos);
 
-        // Obtener información de la sede y franquicia
         Sede sede = dbHelper.getSedeById(sedeId);
         Franquicia franquicia = dbHelper.getFranquiciaById(sede.getFranquiciaId());
 
-        // Establecer la información de la franquicia y sede
         tvFranquiciaNombre.setText(franquicia.getNombre());
         tvSedeNombre.setText(sede.getDireccion());
 
-        // Limpiar el container antes de agregar nuevos items
-        medicamentosContainer.removeAllViews();
+        // Cargar la imagen con Glide
+        Glide.with(this)
+                .load(franquicia.getImagenUrl()) // Si es una URL
+                // .load(franquicia.getLogoResourceId()) // Si es un recurso (R.drawable.xxx)
+                .placeholder(R.drawable.ic_launcher_foreground) // Imagen mientras carga
+                .error(R.drawable.ic_launcher_foreground) // Imagen si hay error
+                .centerCrop() // Escala la imagen
+                .into(ivLogo);
 
-        // Agregar los precios de los medicamentos
-        for (PrecioMedicamento precio : precios) {
-            View itemView = getLayoutInflater().inflate(R.layout.item_medicamento, medicamentosContainer, false);
-            TextView tvMedicamento = itemView.findViewById(R.id.tvMedicamento);
-            TextView tvPrecio = itemView.findViewById(R.id.tvPrecio);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        MedicamentoAdapter adapter = new MedicamentoAdapter(precios, dbHelper);
+        recyclerView.setAdapter(adapter);
 
-            tvMedicamento.setText(precio.getNombreMedicamento());
-            tvPrecio.setText(String.format("$%.2f", precio.getPrecio()));
-
-            medicamentosContainer.addView(itemView);
-        }
-
-        // Agregar listener para cuando se cierre el BottomSheet
-        bottomSheetDialog.setOnDismissListener(dialog -> {
-            // Limpiar recursos si es necesario
-            medicamentosContainer.removeAllViews();
-        });
-
-        // Mostrar el BottomSheet
         bottomSheetDialog.show();
     }
 //  Menu de navegacion
@@ -331,6 +332,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
+        if (dbHelper != null) {
+            dbHelper.close();
+        }
     }
 
     @Override

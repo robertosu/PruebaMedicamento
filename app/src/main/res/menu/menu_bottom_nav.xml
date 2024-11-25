@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="Inicio"
+    <item android:title="Mapa"
         android:icon="@drawable/baseline_map_24"
-        android:id="@+id/menu_inicio"/>
+        android:id="@+id/menu_mapa"/>
 
     <item android:title="Lista"
         android:icon="@drawable/baseline_view_list_24"

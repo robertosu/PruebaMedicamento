@@ -50,4 +50,7 @@ dependencies {
     // FIREBASE
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.analytics
+    //glide imagenes con url
+    implementation libs.glide
+    annotationProcessor libs.compiler
 }
