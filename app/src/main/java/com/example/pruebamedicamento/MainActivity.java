@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +24,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.FirebaseApp;
 
 import java.util.HashSet;
 import java.util.List;
@@ -33,15 +37,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DatabaseHelper dbHelper;
     private BottomSheetDialog bottomSheetDialog;
     private FilterHelper filterHelper;
+    private FirebaseSyncHelper dbSyncHelper;
+    private ProgressBar progressBar;
+    private Button btnDownload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FirebaseApp.initializeApp(this);
         setContentView(R.layout.activity_main);
 
         // Inicializar DatabaseHelper
         dbHelper = new DatabaseHelper(this);
         filterHelper = new FilterHelper();
+        //inicializar firebase
+        dbSyncHelper = new FirebaseSyncHelper(dbHelper);
+
 
         // Inicializar MapView
         mapView = findViewById(R.id.mapView);
@@ -56,6 +67,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Agregar botón de filtro
         FloatingActionButton fabFilter = findViewById(R.id.fabFilter);
         fabFilter.setOnClickListener(v -> showFilterDialog());
+        //
+        // Botones para probar la sincronización y su progressbar
+        progressBar = findViewById(R.id.progressBar);
+        btnDownload = findViewById(R.id.btnDownload);
+        findViewById(R.id.btnSync).setOnClickListener(v -> testSync());
+        btnDownload.setOnClickListener(v -> downloadDataManually());
+    }
+    private void testSync() {
+        dbSyncHelper.uploadAllDataToFirebase(new FirebaseSyncHelper.OnSyncCompleteListener() {
+            @Override
+            public void onTableSynced(String tableName) {
+                Log.d("Firebase", "Tabla sincronizada: " + tableName);
+                Toast.makeText(MainActivity.this,
+                        "Tabla sincronizada: " + tableName,
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSyncError(String error) {
+                Log.e("Firebase", "Error de sincronización: " + error);
+                Toast.makeText(MainActivity.this,
+                        "Error: " + error,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    private void downloadDataManually() {
+        btnDownload.setEnabled(false);
+        progressBar.setVisibility(View.VISIBLE);
+
+        dbSyncHelper.downloadDataFromFirebase(new FirebaseSyncHelper.OnSyncCompleteListener() {
+            @Override
+            public void onTableSynced(String tableName) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this,
+                            "Tabla descargada: " + tableName,
+                            Toast.LENGTH_SHORT).show();
+                });
+
+            }
+
+            @Override
+            public void onSyncError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this,
+                            "Error: " + error,
+                            Toast.LENGTH_LONG).show();
+                    btnDownload.setEnabled(true);
+                    progressBar.setVisibility(View.GONE);
+                });
+            }
+        });
+        progressBar.setVisibility(View.GONE);
+        btnDownload.setEnabled(true);
     }
     private void showFilterDialog() {
         FilterDialogFragment filterDialog = FilterDialogFragment.newInstance();

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "21314438660",
+    "project_id": "medicamentos-android-df4dd",
+    "storage_bucket": "medicamentos-android-df4dd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:21314438660:android:e46ac712c63ed6c85e1751",
+        "android_client_info": {
+          "package_name": "com.example.pruebamedicamento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxP9B_L-4FUl_-SNxEHQjJKz5IgawV-z8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -168,7 +168,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        initBd(sqLiteDatabase);
+        //initBd(sqLiteDatabase);
     }
 
     private void initBd(SQLiteDatabase sqLiteDatabase) {
